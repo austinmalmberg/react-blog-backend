@@ -16,14 +16,46 @@ router.get('/', async (req, res) => {
 
 });
 
+router.post('/new', async (req, res) => {
+
+  const { articleUrl, articleTitle, articleBody } = req.body;
+  const articleName = (articleUrl ? articleUrl : articleTitle).trim().toLowerCase().split(/\s+/).join('-');
+  const articleContent = articleBody.split(/\n+/);
+
+  withDB(async (db) => {
+
+    const existingArticle = await db.collection(DB_COLLECTION).findOne({ name: articleName });
+    if (existingArticle != null) {
+      res.status(409).json({
+        name: articleName,
+        error: `Article URL, ${articleName}, already exists`
+      });
+
+    } else {
+      await db.collection(DB_COLLECTION).insertOne({
+        created: Date.now(),
+        name: articleName,
+        title: articleTitle,
+        content: articleContent,
+        upvotes: 0,
+        comments: []
+      });
+
+      const article = await db.collection(DB_COLLECTION).findOne({ name: articleName });
+      res.status(201).json(article);
+    }
+
+  }, res);
+});
+
 router.get('/:name', async (req, res) => {
 
   const articleName = req.params.name;
 
   withDB(async (db) => {
 
-    const articleInfo = await db.collection(DB_COLLECTION).findOne({ name: articleName });
-    res.status(200).json(articleInfo);
+    const article = await db.collection(DB_COLLECTION).findOne({ name: articleName });
+    res.status(200).json(article);
 
   }, res);
 });
@@ -38,9 +70,9 @@ router.post('/:name/upvote', async (req, res) => {
     // increments the db count by 1
     await db.collection(DB_COLLECTION).updateOne({ name: articleName }, { '$inc': { upvotes: 1 } });
 
-    const updatedArticleInfo = await db.collection(DB_COLLECTION).findOne({ name: articleName });
+    const updatedArticle = await db.collection(DB_COLLECTION).findOne({ name: articleName });
 
-    res.status(200).json(updatedArticleInfo);
+    res.status(200).json(updatedArticle);
 
   }, res);
 });
@@ -61,9 +93,9 @@ router.post('/:name/add-comment', (req, res) => {
       }
     });
 
-    const updatedArticleInfo = await db.collection(DB_COLLECTION).findOne({ name: articleName });
+    const updatedArticle = await db.collection(DB_COLLECTION).findOne({ name: articleName });
 
-    res.status(200).json(updatedArticleInfo);
+    res.status(200).json(updatedArticle);
 
   }, res);
 });
@@ -84,7 +116,7 @@ async function withDB(operations, res) {
 
   } catch (error) {
     console.log(error);
-    res.status(500).send({ message: 'Error connecting to the database', error });
+    res.status(500).send({ error: 'Error connecting to the database', error });
   }
 };
 
