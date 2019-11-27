@@ -61,7 +61,7 @@ router.get('/:name', async (req, res) => {
 });
 
 // updates the article upvote count by 1
-router.post('/:name/upvote', async (req, res) => {
+router.put('/:name/upvote', async (req, res) => {
 
   const articleName = req.params.name;
 
@@ -77,7 +77,7 @@ router.post('/:name/upvote', async (req, res) => {
   }, res);
 });
 
-router.post('/:name/add-comment', (req, res) => {
+router.put('/:name/add-comment', (req, res) => {
 
   // parse username and text from body
   const { username, text } = req.body;
