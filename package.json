@@ -12,7 +12,7 @@
     "@babel/core": "^7.7.2",
     "@babel/node": "^7.7.0",
     "@babel/preset-env": "^7.7.1",
-    "nodemon": "^2.0.0"
+    "nodemon": "^2.0.22"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
